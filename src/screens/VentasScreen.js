@@ -1,13 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 
-const PRODUCTOS = [
-  { id: '1', name: 'Yuki Chico', price: 40, category: 'Raspados' },
-  { id: '2', name: 'Yuki Medio', price: 50, category: 'Raspados' },
-  { id: '3', name: 'Yuki Grande', price: 80, category: 'Raspados' },
-];
-
-export default function VentasScreen({ navigation }) {
+export default function VentasScreen({ navigation, productos = [] }) {
   const [cart, setCart] = useState({});
 
   const updateQuantity = (id, delta) => {
@@ -18,38 +12,47 @@ export default function VentasScreen({ navigation }) {
     });
   };
 
+  // Agrupar categorías dinámicamente
+  const categories = Array.from(new Set(productos.map((p) => p.category)));
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Ventas</Text>
       <ScrollView style={{ width: '100%' }}>
-        <Text style={styles.sectionHeader}>Raspados</Text>
-        {PRODUCTOS.map((item) => {
-          const qty = cart[item.id] || 0;
-          return (
-            <View key={item.id} style={styles.productRow}>
-              <View style={styles.priceCard}>
-                <Text style={styles.priceText}>${item.price}</Text>
-                <Text style={styles.productName}>{item.name}</Text>
-                <View style={styles.controls}>
-                  <TouchableOpacity onPress={() => updateQuantity(item.id, 1)} style={styles.btn}>
-                    <Text style={styles.btnText}>+</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={() => updateQuantity(item.id, -1)} style={styles.btn}>
-                    <Text style={styles.btnText}>-</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-              <View style={styles.qtyBadge}>
-                <Text style={styles.qtyText}>{qty}</Text>
-              </View>
-            </View>
-          );
-        })}
+        {categories.map((cat) => (
+          <View key={cat}>
+            <Text style={styles.sectionHeader}>{cat}</Text>
+            {productos
+              .filter((p) => p.category === cat)
+              .map((item) => {
+                const qty = cart[item.id] || 0;
+                return (
+                  <View key={item.id} style={styles.productRow}>
+                    <View style={styles.priceCard}>
+                      <Text style={styles.priceText}>${item.price}</Text>
+                      <Text style={styles.productName}>{item.name}</Text>
+                      <View style={styles.controls}>
+                        <TouchableOpacity onPress={() => updateQuantity(item.id, 1)} style={styles.btn}>
+                          <Text style={styles.btnText}>+</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => updateQuantity(item.id, -1)} style={styles.btn}>
+                          <Text style={styles.btnText}>-</Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.qtyBadge}>
+                      <Text style={styles.qtyText}>{qty}</Text>
+                    </View>
+                  </View>
+                );
+              })}
+          </View>
+        ))}
       </ScrollView>
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.closeOrderBtn}
-        onPress={() => navigation.navigate('ResumenCheckout', { cart, productos: PRODUCTOS })}
+        onPress={() => navigation.navigate('ResumenCheckout', { cart, productos })}
       >
         <Text style={styles.closeOrderText}>Cerrar pedido</Text>
       </TouchableOpacity>

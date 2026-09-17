@@ -1,19 +1,39 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Modal, StyleSheet } from 'react-native';
 
-export default function ResumenCheckoutScreen({ route, navigation }) {
+export default function ResumenCheckoutScreen({ route, navigation, addOrder }) {
   const { cart = {}, productos = [] } = route.params || {};
-  const [paymentMethod, setPaymentMethod] = useState(null); // 'efectivo' | 'transferencia'
+  const [paymentMethod, setPaymentMethod] = useState(null);
   const [payAmount, setPayAmount] = useState('');
 
   const itemsInCart = productos.filter((p) => cart[p.id] > 0);
   const total = itemsInCart.reduce((sum, p) => sum + p.price * cart[p.id], 0);
   const change = parseFloat(payAmount) ? Math.max(0, parseFloat(payAmount) - total) : 0;
 
+  const handleConfirmOrder = () => {
+    const newOrder = {
+      id: Math.floor(1000 + Math.random() * 9000), // Genera ID de 4 dígitos
+      items: itemsInCart.map((p) => ({
+        id: p.id,
+        name: p.name,
+        quantity: cart[p.id],
+        category: p.category,
+      })),
+      total: total,
+      method: paymentMethod,
+      status: 'pendiente', // 'pendiente' -> pasa a 'completado'
+      timestamp: new Date().toISOString(),
+    };
+
+    addOrder(newOrder);
+    setPaymentMethod(null);
+    navigation.navigate('VentasMain');
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Resumen</Text>
-      
+
       <View style={styles.summaryList}>
         {itemsInCart.map((item) => (
           <View key={item.id} style={styles.itemRow}>
@@ -52,7 +72,7 @@ export default function ResumenCheckoutScreen({ route, navigation }) {
               <TouchableOpacity style={styles.actionBtn} onPress={() => setPaymentMethod(null)}>
                 <Text>Atrás</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionBtn} onPress={() => { setPaymentMethod(null); navigation.navigate('VentasMain'); }}>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleConfirmOrder}>
                 <Text>Aceptar</Text>
               </TouchableOpacity>
             </View>
@@ -70,7 +90,7 @@ export default function ResumenCheckoutScreen({ route, navigation }) {
               <TouchableOpacity style={styles.actionBtn} onPress={() => setPaymentMethod(null)}>
                 <Text>Atrás</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.actionBtn} onPress={() => { setPaymentMethod(null); navigation.navigate('VentasMain'); }}>
+              <TouchableOpacity style={styles.actionBtn} onPress={handleConfirmOrder}>
                 <Text>Aceptar</Text>
               </TouchableOpacity>
             </View>
